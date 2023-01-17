@@ -1,3 +1,11 @@
+Postgres:
+ Host: "0.0.0.0"
+ Port: 5432
+ Login: postgres
+ Password: 1234 
+ ConnMaxLifeTime: 3
+ MaxOpenConn: 10
+ MaxIdleConn: 10
 GrpcServer:
  Host: localhost
  Port: :50051
