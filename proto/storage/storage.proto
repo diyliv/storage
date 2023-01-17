@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+
+package storage; 
+option go_package="./storagepb";
+
+service StorageService {
+    rpc Handshake(google.protobuf.Empty) returns (HandshakeResp){};
+}
+
+message HandshakeResp {
+    string privateKey = 1;
+}

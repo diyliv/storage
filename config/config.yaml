@@ -1,0 +1,8 @@
+GrpcServer:
+ Host: localhost
+ Port: :50051
+ Timeout: 15
+ ReadTimeout: 5
+ WriteTimeout: 5
+ MaxConnectionIdle: 5
+ MaxConnectionAge: 5
