@@ -1,15 +1,22 @@
 package main
 
 import (
-	"fmt"
-
-	rsaenc "github.com/diyliv/storage/pkg/rsa"
+	"github.com/diyliv/storage/config"
+	"github.com/diyliv/storage/internal/server"
+	"github.com/diyliv/storage/internal/storage/repository"
+	"github.com/diyliv/storage/internal/storage/usecase"
+	"github.com/diyliv/storage/pkg/logger"
+	"github.com/diyliv/storage/pkg/storage/postgres"
 )
 
 func main() {
-	keys, err := rsaenc.GenerateKeys()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%x\n", keys.D)
+	cfg := config.ReadConfig()
+	logger := logger.InitLogger()
+
+	psqlConn := postgres.ConnPostgres(cfg)
+	psqlRepo := repository.NewPostgresRepository(logger, psqlConn)
+	psqlUC := usecase.NewStorageUC(psqlRepo)
+
+	server := server.NewServer(logger, cfg, psqlUC)
+	server.StartgRPC()
 }
