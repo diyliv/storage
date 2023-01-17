@@ -23,6 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StorageServiceClient interface {
+	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error)
+	CreateSession(ctx context.Context, in *CreateSessionReq, opts ...grpc.CallOption) (*CreateSessionResp, error)
 	Handshake(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*HandshakeResp, error)
 }
 
@@ -32,6 +34,24 @@ type storageServiceClient struct {
 
 func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
 	return &storageServiceClient{cc}
+}
+
+func (c *storageServiceClient) Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error) {
+	out := new(RegisterResp)
+	err := c.cc.Invoke(ctx, "/storage.StorageService/Register", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *storageServiceClient) CreateSession(ctx context.Context, in *CreateSessionReq, opts ...grpc.CallOption) (*CreateSessionResp, error) {
+	out := new(CreateSessionResp)
+	err := c.cc.Invoke(ctx, "/storage.StorageService/CreateSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *storageServiceClient) Handshake(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*HandshakeResp, error) {
@@ -47,6 +67,8 @@ func (c *storageServiceClient) Handshake(ctx context.Context, in *empty.Empty, o
 // All implementations should embed UnimplementedStorageServiceServer
 // for forward compatibility
 type StorageServiceServer interface {
+	Register(context.Context, *RegisterReq) (*RegisterResp, error)
+	CreateSession(context.Context, *CreateSessionReq) (*CreateSessionResp, error)
 	Handshake(context.Context, *empty.Empty) (*HandshakeResp, error)
 }
 
@@ -54,6 +76,12 @@ type StorageServiceServer interface {
 type UnimplementedStorageServiceServer struct {
 }
 
+func (UnimplementedStorageServiceServer) Register(context.Context, *RegisterReq) (*RegisterResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
+}
+func (UnimplementedStorageServiceServer) CreateSession(context.Context, *CreateSessionReq) (*CreateSessionResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
+}
 func (UnimplementedStorageServiceServer) Handshake(context.Context, *empty.Empty) (*HandshakeResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Handshake not implemented")
 }
@@ -67,6 +95,42 @@ type UnsafeStorageServiceServer interface {
 
 func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceServer) {
 	s.RegisterService(&StorageService_ServiceDesc, srv)
+}
+
+func _StorageService_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.StorageService/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).Register(ctx, req.(*RegisterReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StorageService_CreateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSessionReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageServiceServer).CreateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/storage.StorageService/CreateSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageServiceServer).CreateSession(ctx, req.(*CreateSessionReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _StorageService_Handshake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -94,6 +158,14 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "storage.StorageService",
 	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _StorageService_Register_Handler,
+		},
+		{
+			MethodName: "CreateSession",
+			Handler:    _StorageService_CreateSession_Handler,
+		},
 		{
 			MethodName: "Handshake",
 			Handler:    _StorageService_Handshake_Handler,

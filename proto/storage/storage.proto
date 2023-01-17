@@ -1,13 +1,43 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
-
+import "google/protobuf/timestamp.proto";
 
 package storage; 
 option go_package="./storagepb";
 
 service StorageService {
+    rpc Register(RegisterReq) returns (RegisterResp){};
+    rpc CreateSession(CreateSessionReq) returns (CreateSessionResp){};
     rpc Handshake(google.protobuf.Empty) returns (HandshakeResp){};
+}
+
+message User {
+    int64 id = 1;
+    string userName = 2;
+    string userEmail = 3;
+    string userHashedPassword = 4;
+    google.protobuf.Timestamp userUpdatedPassword = 5;
+    google.protobuf.Timestamp userCreatedAt = 6;
+}
+
+message RegisterReq {
+    string userName = 1;
+    string userEmail = 2;
+    string userPassword = 3;
+}
+
+message RegisterResp {
+    string status = 1;
+}
+
+message CreateSessionReq {
+    string email = 1;
+    string password = 2;
+}
+
+message CreateSessionResp {
+    string sessionToken = 1;
 }
 
 message HandshakeResp {
