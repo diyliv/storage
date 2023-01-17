@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -30,13 +30,13 @@ func TestEncryptOAEP(t *testing.T) {
 		t.Errorf("Error while calling EncryptOAEP(): %v\n", err)
 	}
 
-	if err := ioutil.WriteFile("encrypted.txt", encrypt, 0644); err != nil {
+	if err := os.WriteFile("encrypted.txt", encrypt, 0644); err != nil {
 		t.Errorf("Error while writing encrypted data to file: %v\n", err)
 	}
 }
 
 func TestDecryption(t *testing.T) {
-	data, err := ioutil.ReadFile("encrypted.txt")
+	data, err := os.ReadFile("encrypted.txt")
 	if err != nil {
 		t.Errorf("Error while reading encrypted data from file: %v\n", err)
 	}
