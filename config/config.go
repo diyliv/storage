@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Postgres   Postgres
 	GrpcServer GrpcServer
+	Redis      Redis
 }
 
 type Postgres struct {
@@ -29,6 +30,16 @@ type GrpcServer struct {
 	WriteTimeout      time.Duration
 	MaxConnectionIdle time.Duration
 	MaxConnectionAge  time.Duration
+}
+
+type Redis struct {
+	Addr           string
+	Password       string
+	DB             int
+	MinIdleConn    int
+	PoolSize       int
+	PoolTimeout    int
+	FieldTokenName string
 }
 
 func ReadConfig() *Config {
