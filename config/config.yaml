@@ -14,3 +14,11 @@ GrpcServer:
  WriteTimeout: 5
  MaxConnectionIdle: 5
  MaxConnectionAge: 5
+Redis:
+ Addr: "172.17.0.2:6379"
+ Password: ""
+ DB: 0
+ MinIdleConn: 200
+ PoolSize: 12000
+ PoolTimeout: 240
+ FieldTokenName: token
