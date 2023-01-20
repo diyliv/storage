@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/diyliv/storage/config"
+	"github.com/diyliv/storage/internal/interceptors"
 	"github.com/diyliv/storage/internal/storage"
 	grpcservice "github.com/diyliv/storage/internal/storage/delivery/grpc"
 	storagepb "github.com/diyliv/storage/proto/storage"
@@ -38,6 +39,8 @@ func (s *server) StartgRPC() {
 	}
 	defer lis.Close()
 
+	interceptors := interceptors.NewInterceptor(s.logger, s.storageUC)
+
 	opts := []grpc.ServerOption{
 		grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: s.cfg.GrpcServer.MaxConnectionIdle * time.Minute,
@@ -45,6 +48,7 @@ func (s *server) StartgRPC() {
 			MaxConnectionAge:  s.cfg.GrpcServer.MaxConnectionAge * time.Minute,
 			Time:              s.cfg.GrpcServer.Timeout * time.Minute,
 		}),
+		grpc.ChainUnaryInterceptor(interceptors.Logger, interceptors.CheckToken),
 	}
 	grpcservice := grpcservice.NewgRPCService(s.logger, s.storageUC)
 	server := grpc.NewServer(opts...)
