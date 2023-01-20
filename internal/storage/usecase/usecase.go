@@ -9,10 +9,14 @@ import (
 
 type storageUC struct {
 	postgresRepo storage.PostgresRepository
+	redisRepo    storage.RedisRepository
 }
 
-func NewStorageUC(postgresRepo storage.PostgresRepository) *storageUC {
-	return &storageUC{postgresRepo: postgresRepo}
+func NewStorageUC(postgresRepo storage.PostgresRepository, redisRepo storage.RedisRepository) *storageUC {
+	return &storageUC{
+		postgresRepo: postgresRepo,
+		redisRepo:    redisRepo,
+	}
 }
 
 func (s *storageUC) Register(ctx context.Context, user models.User) error {
@@ -23,10 +27,14 @@ func (s *storageUC) GetUserInfo(ctx context.Context, email string) (models.User,
 	return s.postgresRepo.GetUserInfo(ctx, email)
 }
 
-func (s *storageUC) CreateSession(ctx context.Context, id int, sessionToken string) error {
-	return s.postgresRepo.CreateSession(ctx, id, sessionToken)
-}
-
 func (s *storageUC) SavePublicKey(ctx context.Context, key string) error {
 	return s.postgresRepo.SavePublicKey(ctx, key)
+}
+
+func (s *storageUC) CreateSession(ctx context.Context, userId, userName, userEmail, sessionToken string) error {
+	return s.redisRepo.CreateSession(ctx, userId, userName, userEmail, sessionToken)
+}
+
+func (s *storageUC) CheckToken(ctx context.Context, sessionToken string) error {
+	return s.redisRepo.CheckToken(ctx, sessionToken)
 }
