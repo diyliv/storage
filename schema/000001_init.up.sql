@@ -12,8 +12,3 @@ CREATE TABLE IF NOT EXISTS users_keys(
     user_public_key VARCHAR NOT NULL,
     user_passphrase VARCHAR(16) NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS sessions(
-    id INT NOT NULL, 
-    session_token VARCHAR NOT NULL
-);
