@@ -61,10 +61,6 @@ func (p *postgresRepo) GetUserInfo(ctx context.Context, email string) (models.Us
 	return user, nil
 }
 
-func (p *postgresRepo) CreateSession(ctx context.Context, id int, sessionToken string) error {
-	return nil
-}
-
 func (p *postgresRepo) SavePublicKey(ctx context.Context, key string) error {
 	return nil
 }
