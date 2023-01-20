@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
@@ -62,9 +63,13 @@ func (gs *grpcservice) CreateSession(ctx context.Context, req *storagepb.CreateS
 		return nil, status.Error(codes.Unauthenticated, "invalid email or password")
 	}
 
-	// cache token in redis
+	tkn := uuid.New().String()
+	if err := gs.storageUC.CreateSession(ctx, strconv.Itoa(user.Id), user.UserName, req.GetEmail(), tkn); err != nil {
+		gs.logger.Error("Error while calling CreateSession(): " + err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
-	return &storagepb.CreateSessionResp{SessionToken: uuid.New().String()}, status.Error(codes.OK, "")
+	return &storagepb.CreateSessionResp{SessionToken: tkn}, status.Error(codes.OK, "")
 }
 
 func (gs *grpcservice) Handshake(ctx context.Context, e *empty.Empty) (*storagepb.HandshakeResp, error) {
