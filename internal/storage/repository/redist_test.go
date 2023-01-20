@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -13,9 +14,11 @@ import (
 )
 
 var (
-	cfg = config.ReadConfig("../../../config")
-	log = logger.InitLogger()
-	ctx = context.Background()
+	cfg       = config.ReadConfig("../../../config")
+	log       = logger.InitLogger()
+	ctx       = context.Background()
+	redisConn = ConnRedis(&testing.T{})
+	redisRep  = NewRedisRepo(log, redisConn, cfg)
 )
 
 func ConnRedis(t *testing.T) *redis.Client {
@@ -38,9 +41,12 @@ func ConnRedis(t *testing.T) *redis.Client {
 	return client
 }
 
+func clear() {
+	os.Remove("storage_service.json")
+}
+
 func TestCreateSession(t *testing.T) {
-	redisConn := ConnRedis(t)
-	redisRepo := NewRedisRepo(log, redisConn, cfg)
+	defer clear()
 
 	tc := []struct {
 		userId       string
@@ -54,13 +60,34 @@ func TestCreateSession(t *testing.T) {
 	}
 
 	for _, val := range tc {
-		if err := redisRepo.CreateSession(
+		if err := redisRep.CreateSession(
 			ctx,
 			val.userId,
 			val.userName,
 			val.userEmail,
 			val.sessionToken); err != nil {
 			t.Errorf("Error while calling CreateSession() method: %v\n", err)
+		}
+	}
+}
+
+func TestCheckToken(t *testing.T) {
+	defer clear()
+
+	tc := []struct {
+		userId       string
+		userName     string
+		userEmail    string
+		sessionToken string
+	}{
+		{"1", "test_user_number_one", "test@email.com", "first_user_token"},
+		{"2", "test_user_number_two", "second_test@email.com", "second_user_token"},
+		{"3", "test_user_number_three", "third_test@email.com", "third_user_token"},
+	}
+
+	for _, val := range tc {
+		if err := redisRep.CheckToken(ctx, val.sessionToken); err != nil {
+			t.Errorf("Error while checking token: %v\n", err)
 		}
 	}
 }
