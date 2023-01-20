@@ -42,12 +42,12 @@ type Redis struct {
 	FieldTokenName string
 }
 
-func ReadConfig() *Config {
+func ReadConfig(path string) *Config {
 	var cfg Config
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("config")
+	viper.AddConfigPath(path)
 
 	if err := viper.ReadInConfig(); err != nil {
 		panic(err)
