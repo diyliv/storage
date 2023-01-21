@@ -10,6 +10,7 @@ type PostgresRepository interface {
 	Register(ctx context.Context, user models.User) error
 	GetUserInfo(ctx context.Context, email string) (models.User, error)
 	SavePublicKey(ctx context.Context, userId int, key, passPhrase string) error
+	DeleteUserByEmail(ctx context.Context, email string) error
 }
 
 type RedisRepository interface {
