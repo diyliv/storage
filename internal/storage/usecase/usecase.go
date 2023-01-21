@@ -31,6 +31,10 @@ func (s *storageUC) SavePublicKey(ctx context.Context, userId int, key, passPhra
 	return s.postgresRepo.SavePublicKey(ctx, userId, key, passPhrase)
 }
 
+func (s *storageUC) DeleteUserByEmail(ctx context.Context, email string) error {
+	return s.postgresRepo.DeleteUserByEmail(ctx, email)
+}
+
 func (s *storageUC) CreateSession(ctx context.Context, userId, userName, userEmail, sessionToken string) error {
 	return s.redisRepo.CreateSession(ctx, userId, userName, userEmail, sessionToken)
 }
