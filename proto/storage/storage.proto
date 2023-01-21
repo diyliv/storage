@@ -9,7 +9,7 @@ option go_package="./storagepb";
 service StorageService {
     rpc Register(RegisterReq) returns (RegisterResp){};
     rpc CreateSession(CreateSessionReq) returns (CreateSessionResp){};
-    rpc Handshake(google.protobuf.Empty) returns (HandshakeResp){};
+    rpc ExchangeKeys(google.protobuf.Empty) returns (ExchangeKeysResp){};
 }
 
 message User {
@@ -40,6 +40,6 @@ message CreateSessionResp {
     string sessionToken = 1;
 }
 
-message HandshakeResp {
+message ExchangeKeysResp {
     string privateKey = 1;
 }

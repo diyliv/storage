@@ -25,7 +25,7 @@ const _ = grpc.SupportPackageIsVersion7
 type StorageServiceClient interface {
 	Register(ctx context.Context, in *RegisterReq, opts ...grpc.CallOption) (*RegisterResp, error)
 	CreateSession(ctx context.Context, in *CreateSessionReq, opts ...grpc.CallOption) (*CreateSessionResp, error)
-	Handshake(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*HandshakeResp, error)
+	ExchangeKeys(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ExchangeKeysResp, error)
 }
 
 type storageServiceClient struct {
@@ -54,9 +54,9 @@ func (c *storageServiceClient) CreateSession(ctx context.Context, in *CreateSess
 	return out, nil
 }
 
-func (c *storageServiceClient) Handshake(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*HandshakeResp, error) {
-	out := new(HandshakeResp)
-	err := c.cc.Invoke(ctx, "/storage.StorageService/Handshake", in, out, opts...)
+func (c *storageServiceClient) ExchangeKeys(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ExchangeKeysResp, error) {
+	out := new(ExchangeKeysResp)
+	err := c.cc.Invoke(ctx, "/storage.StorageService/ExchangeKeys", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (c *storageServiceClient) Handshake(ctx context.Context, in *empty.Empty, o
 type StorageServiceServer interface {
 	Register(context.Context, *RegisterReq) (*RegisterResp, error)
 	CreateSession(context.Context, *CreateSessionReq) (*CreateSessionResp, error)
-	Handshake(context.Context, *empty.Empty) (*HandshakeResp, error)
+	ExchangeKeys(context.Context, *empty.Empty) (*ExchangeKeysResp, error)
 }
 
 // UnimplementedStorageServiceServer should be embedded to have forward compatible implementations.
@@ -82,8 +82,8 @@ func (UnimplementedStorageServiceServer) Register(context.Context, *RegisterReq)
 func (UnimplementedStorageServiceServer) CreateSession(context.Context, *CreateSessionReq) (*CreateSessionResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
 }
-func (UnimplementedStorageServiceServer) Handshake(context.Context, *empty.Empty) (*HandshakeResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Handshake not implemented")
+func (UnimplementedStorageServiceServer) ExchangeKeys(context.Context, *empty.Empty) (*ExchangeKeysResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExchangeKeys not implemented")
 }
 
 // UnsafeStorageServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -133,20 +133,20 @@ func _StorageService_CreateSession_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _StorageService_Handshake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ExchangeKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServiceServer).Handshake(ctx, in)
+		return srv.(StorageServiceServer).ExchangeKeys(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/storage.StorageService/Handshake",
+		FullMethod: "/storage.StorageService/ExchangeKeys",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServiceServer).Handshake(ctx, req.(*empty.Empty))
+		return srv.(StorageServiceServer).ExchangeKeys(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -167,8 +167,8 @@ var StorageService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _StorageService_CreateSession_Handler,
 		},
 		{
-			MethodName: "Handshake",
-			Handler:    _StorageService_Handshake_Handler,
+			MethodName: "ExchangeKeys",
+			Handler:    _StorageService_ExchangeKeys_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
