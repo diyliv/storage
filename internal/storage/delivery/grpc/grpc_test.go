@@ -9,6 +9,7 @@ import (
 	"github.com/alicebob/miniredis"
 	"github.com/go-redis/redis"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/diyliv/storage/config"
@@ -70,7 +71,7 @@ func ConnRedis(t *testing.T) *redis.Client {
 
 func TestRegister(t *testing.T) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Errorf("Error while dialing with bufnet: %v\n", err)
 	}
@@ -95,7 +96,7 @@ func TestRegister(t *testing.T) {
 
 func TestCreateSession(t *testing.T) {
 	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Errorf("Error while dialing with bufnet: %v\n", err)
 	}
