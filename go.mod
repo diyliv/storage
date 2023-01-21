@@ -3,6 +3,7 @@ module github.com/diyliv/storage
 go 1.19
 
 require (
+	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/alicebob/miniredis/v2 v2.30.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/protobuf v1.5.2
@@ -16,6 +17,7 @@ require (
 
 require (
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
+	github.com/gomodule/redigo v1.8.9 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.25.0 // indirect
