@@ -61,6 +61,14 @@ func (p *postgresRepo) GetUserInfo(ctx context.Context, email string) (models.Us
 	return user, nil
 }
 
-func (p *postgresRepo) SavePublicKey(ctx context.Context, key string) error {
+func (p *postgresRepo) SavePublicKey(ctx context.Context, userId int, key, passPharse string) error {
+	_, err := p.psql.Query("INSERT INTO users_keys (user_id, user_public_key, user_passphrase) VALUES ($1, $2, $3)",
+		userId,
+		key,
+		passPharse)
+	if err != nil {
+		p.logger.Error("Error while saving public key: " + err.Error())
+		return err
+	}
 	return nil
 }
