@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS users_keys(
-    id INT NOT NULL, 
+    user_id INT NOT NULL, 
     user_public_key VARCHAR NOT NULL,
     user_passphrase VARCHAR(16) NOT NULL
 );
