@@ -72,3 +72,12 @@ func (p *postgresRepo) SavePublicKey(ctx context.Context, userId int, key, passP
 	}
 	return nil
 }
+
+func (p *postgresRepo) DeleteUserByEmail(ctx context.Context, email string) error {
+	_, err := p.psql.Query("DELETE FROM users WHERE user_email = $1", email)
+	if err != nil {
+		p.logger.Error("Error while deleting user: " + err.Error())
+		return err
+	}
+	return nil
+}
