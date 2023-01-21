@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/diyliv/storage/internal/models"
@@ -72,14 +73,31 @@ func (gs *grpcservice) CreateSession(ctx context.Context, req *storagepb.CreateS
 	return &storagepb.CreateSessionResp{SessionToken: tkn}, status.Error(codes.OK, "")
 }
 
-func (gs *grpcservice) Handshake(ctx context.Context, e *empty.Empty) (*storagepb.HandshakeResp, error) {
+func (gs *grpcservice) ExchangeKeys(ctx context.Context, e *empty.Empty) (*storagepb.ExchangeKeysResp, error) {
 	keys, err := rsaenc.GenerateKeys()
 	if err != nil {
 		gs.logger.Error("Error while generating keys: " + err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	privateKey := fmt.Sprintf("%x", keys.D)
+	md, _ := metadata.FromIncomingContext(ctx)
 
-	return &storagepb.HandshakeResp{PrivateKey: privateKey}, status.Error(codes.OK, "")
+	sessionInfo, err := gs.storageUC.GetSessionInfo(ctx, md["authorization"][0])
+	if err != nil {
+		gs.logger.Error("Error while getting info from session: " + err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	intId, err := strconv.Atoi(sessionInfo["userId"])
+	if err != nil {
+		gs.logger.Error("Error while converting string to int: " + err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	if err := gs.storageUC.SavePublicKey(ctx, intId, fmt.Sprintf("%x", keys.D), ""); err != nil {
+		gs.logger.Error("Error while saving keys: " + err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &storagepb.ExchangeKeysResp{PrivateKey: fmt.Sprintf("%x", keys.D)}, status.Error(codes.OK, "")
 }
