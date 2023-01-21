@@ -27,8 +27,8 @@ func (s *storageUC) GetUserInfo(ctx context.Context, email string) (models.User,
 	return s.postgresRepo.GetUserInfo(ctx, email)
 }
 
-func (s *storageUC) SavePublicKey(ctx context.Context, key string) error {
-	return s.postgresRepo.SavePublicKey(ctx, key)
+func (s *storageUC) SavePublicKey(ctx context.Context, userId int, key, passPhrase string) error {
+	return s.postgresRepo.SavePublicKey(ctx, userId, key, passPhrase)
 }
 
 func (s *storageUC) CreateSession(ctx context.Context, userId, userName, userEmail, sessionToken string) error {
@@ -37,4 +37,8 @@ func (s *storageUC) CreateSession(ctx context.Context, userId, userName, userEma
 
 func (s *storageUC) CheckToken(ctx context.Context, sessionToken string) error {
 	return s.redisRepo.CheckToken(ctx, sessionToken)
+}
+
+func (s *storageUC) GetSessionInfo(ctx context.Context, sessionToken string) (map[string]string, error) {
+	return s.redisRepo.GetSessionInfo(ctx, sessionToken)
 }
