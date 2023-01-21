@@ -91,3 +91,42 @@ func TestCheckToken(t *testing.T) {
 		}
 	}
 }
+
+func TestGetSessionInfo(t *testing.T) {
+	defer clear()
+
+	tc := []struct {
+		userId       string
+		userName     string
+		userEmail    string
+		sessionToken string
+	}{
+		{"1", "test_user_number_one", "test@email.com", "first_user_token"},
+		{"2", "test_user_number_two", "second_test@email.com", "second_user_token"},
+		{"3", "test_user_number_three", "third_test@email.com", "third_user_token"},
+	}
+
+	for _, val := range tc {
+		result, err := redisRep.GetSessionInfo(ctx, val.sessionToken)
+		if err != nil {
+			t.Errorf("Error while calling GetSesionInfo(): %v\n", err)
+		}
+
+		userId, ok := result["userId"]
+		if !ok {
+			t.Error("Error while getting userId")
+		}
+		if userId != val.userId {
+			t.Errorf("Unexpected value. Got %v want %v", userId, val.userId)
+		}
+
+		userEmail, ok := result["userEmail"]
+		if !ok {
+			t.Error("Error while getting username")
+		}
+		if userEmail != val.userEmail {
+			t.Errorf("Unexpected value. Got %v want %v", userEmail, val.userEmail)
+		}
+	}
+	redisConn.FlushAll()
+}
