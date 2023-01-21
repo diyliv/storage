@@ -46,3 +46,13 @@ func (r *redisRepo) CheckToken(ctx context.Context, sessionToken string) error {
 
 	return nil
 }
+
+func (r *redisRepo) GetSessionInfo(ctx context.Context, sessionToken string) (map[string]string, error) {
+	cmd := r.redis.HGetAll(sessionToken)
+	res, err := cmd.Result()
+	if err != nil {
+		r.logger.Error("Error while getting result: " + err.Error())
+	}
+
+	return res, nil
+}
