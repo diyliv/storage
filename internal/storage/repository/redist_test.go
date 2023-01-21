@@ -128,5 +128,4 @@ func TestGetSessionInfo(t *testing.T) {
 			t.Errorf("Unexpected value. Got %v want %v", userEmail, val.userEmail)
 		}
 	}
-	redisConn.FlushAll()
 }
