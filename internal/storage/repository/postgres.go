@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/lib/pq"
 	"go.uber.org/zap"
 
 	"github.com/diyliv/storage/internal/models"
@@ -23,17 +24,16 @@ func NewPostgresRepository(logger *zap.Logger, psql *sql.DB) *postgresRepo {
 }
 
 func (p *postgresRepo) Register(ctx context.Context, user models.User) error {
-	rows, err := p.psql.Exec("INSERT INTO users(user_name, user_email, user_hashed_password) VALUES ($1, $2, $3)",
+	_, err := p.psql.Exec("INSERT INTO users (user_name, user_email, user_hashed_password) VALUES ($1, $2, $3)",
 		user.UserName,
 		user.UserEmail,
 		user.UserHashedPassword)
-	if rows == nil {
-		return errs.ErrAlreadyExists
-	}
-
-	if err != nil {
+	pqErr := err.(*pq.Error)
+	if pqErr != nil {
+		if pqErr.Code == pq.ErrorCode("23505") {
+			return errs.ErrAlreadyExists
+		}
 		p.logger.Error("Error while creating new user: " + err.Error())
-		return err
 	}
 
 	return nil
