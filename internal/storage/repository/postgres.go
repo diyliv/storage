@@ -28,9 +28,9 @@ func (p *postgresRepo) Register(ctx context.Context, user models.User) error {
 		user.UserName,
 		user.UserEmail,
 		user.UserHashedPassword)
-	if err != nil {
-		pqErr := err.(*pq.Error)
-		if pqErr.Code == pq.ErrorCode("23505") {
+
+	if err, ok := err.(*pq.Error); ok {
+		if err.Code == pq.ErrorCode("23505") {
 			return errs.ErrAlreadyExists
 		}
 		p.logger.Error("Error while creating new user: " + err.Error())
