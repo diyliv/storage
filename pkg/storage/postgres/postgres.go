@@ -9,22 +9,25 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func ConnPostgres(cfg *config.Config) *sql.DB {
-	psqlInfo := fmt.Sprintf("host=%s port =%s user=%s password=%s sslmode=disable", cfg.Postgres.Host,
-		cfg.Postgres.Port, cfg.Postgres.Login, cfg.Postgres.Password)
+func ConnPostgres(cfg *config.Config) (*sql.DB, error) {
+	psqlInfo := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable",
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.Login,
+		cfg.Postgres.Password)
 
 	conn, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if err := conn.Ping(); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	conn.SetConnMaxLifetime(time.Minute * time.Duration(cfg.Postgres.ConnMaxLifeTime))
 	conn.SetMaxOpenConns(cfg.Postgres.MaxOpenConn)
 	conn.SetMaxIdleConns(cfg.Postgres.MaxIdleConn)
 
-	return conn
+	return conn, nil
 }
