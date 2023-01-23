@@ -96,8 +96,8 @@ func TestRegister(t *testing.T) {
 		UserPassword: "hello world",
 	})
 	if err != nil {
-		if errors.Is(err, errs.ErrNotFound) {
-			t.Logf("user not found")
+		if errors.Is(err, errs.ErrAlreadyExists) {
+			t.Logf("user already exists")
 		}
 		t.Errorf("Error while calling Register RPC: %v\n", err)
 	}
