@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/diyliv/storage/config"
 	"github.com/diyliv/storage/internal/storage/repository"
 	"github.com/diyliv/storage/internal/storage/usecase"
+	"github.com/diyliv/storage/pkg/errs"
 	"github.com/diyliv/storage/pkg/logger"
 	storagepb "github.com/diyliv/storage/proto/storage"
 )
@@ -94,6 +96,9 @@ func TestRegister(t *testing.T) {
 		UserPassword: "hello world",
 	})
 	if err != nil {
+		if errors.Is(err, errs.ErrNotFound) {
+			t.Logf("user not found")
+		}
 		t.Errorf("Error while calling Register RPC: %v\n", err)
 	}
 	if resp.Status != "created" {
