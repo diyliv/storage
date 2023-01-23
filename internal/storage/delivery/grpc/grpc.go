@@ -65,7 +65,7 @@ func (gs *grpcservice) CreateSession(ctx context.Context, req *storagepb.CreateS
 	}
 
 	tkn := uuid.New().String()
-	if err := gs.storageUC.CreateSession(ctx, strconv.Itoa(user.Id), user.UserName, req.GetEmail(), tkn); err != nil {
+	if err := gs.storageUC.CreateSession(ctx, strconv.Itoa(user.Id), user.UserName, user.UserEmail, tkn); err != nil {
 		gs.logger.Error("Error while calling CreateSession(): " + err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
