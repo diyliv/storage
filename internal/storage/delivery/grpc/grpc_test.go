@@ -26,7 +26,7 @@ const bufSize = 1024 * 1024
 var (
 	cfg       = config.ReadConfig("../../../../config")
 	log       = logger.InitLogger()
-	db, mock  = NewMock()
+	db, _     = NewMock()
 	sqlRepo   = repository.NewPostgresRepository(log, db)
 	redisConn = ConnRedis(&testing.T{})
 	redisRepo = repository.NewRedisRepo(log, redisConn, cfg)
