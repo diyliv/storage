@@ -17,7 +17,10 @@ func main() {
 	redisConn := redis.ConnRedis(cfg)
 	redisRepo := repository.NewRedisRepo(logger, redisConn, cfg)
 
-	psqlConn := postgres.ConnPostgres(cfg)
+	psqlConn, err := postgres.ConnPostgres(cfg)
+	if err != nil {
+		panic(err)
+	}
 	psqlRepo := repository.NewPostgresRepository(logger, psqlConn)
 	psqlUC := usecase.NewStorageUC(psqlRepo, redisRepo)
 
