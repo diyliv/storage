@@ -3,6 +3,7 @@ module github.com/diyliv/storage
 go 1.19
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/alicebob/miniredis/v2 v2.30.0
 	github.com/go-redis/redis v6.15.9+incompatible
