@@ -3,4 +3,4 @@ gen-proto:
 start-redis:
 	docker pull redis && docker run --name rediska -d redis && docker exec -it rediska /bin/bash	
 test:
-	cd tests/ && docker-compose up
+	cd tests/ && docker-compose up -d
