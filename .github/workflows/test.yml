@@ -12,11 +12,6 @@ jobs:
   steps:
    - uses: actions/checkout@v2 # download code from this repo to runner
 
-   - name: Test docker
-     run: docker --version 
-   - name: Test docker compose 
-     run: docker-compose --version
-
    - name: Install Go
      uses: actions/setup-go@v2
      with:
@@ -43,6 +38,9 @@ jobs:
    - name: Run golint 
      run: golint ./...
 
+   - name: Create and start containers
+     run: make test
+
    - name: Run tests
      run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
      
@@ -55,3 +53,5 @@ jobs:
         name: codecov-umbrella # optional
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
+  - name: "Cleaning"
+    run: docker stop $(docker ps -aq) && docker rm $(docker ps -aq) && docker rmi $(docker images)
