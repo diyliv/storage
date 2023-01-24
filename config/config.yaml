@@ -2,7 +2,8 @@ Postgres:
  Host: "0.0.0.0"
  Port: 5432
  Login: postgres
- Password: 1234 
+ Password: 1234
+ DB: postgres 
  ConnMaxLifeTime: 3
  MaxOpenConn: 10
  MaxIdleConn: 10

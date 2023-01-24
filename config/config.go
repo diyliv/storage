@@ -17,6 +17,7 @@ type Postgres struct {
 	Port            string
 	Login           string
 	Password        string
+	DB              string
 	ConnMaxLifeTime int
 	MaxOpenConn     int
 	MaxIdleConn     int
