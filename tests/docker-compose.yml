@@ -25,6 +25,7 @@ services:
   restart: on-failure 
  migrate:
   image: migrate/migrate
+  restart: always
   volumes:
    - ../schema:/schema
   command: ["-path", "/schema", "-database", "postgres://postgres:postgres@pg_test:5432/postgres?sslmode=disable", "up", "3"]
