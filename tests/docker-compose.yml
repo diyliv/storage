@@ -6,6 +6,8 @@ services:
    - "5432:5432"
   image: postgres:11
   restart: on-failure
+  depends_on:
+   - migrate 
   env_file:
    - .env 
   healthcheck:
@@ -30,5 +32,3 @@ services:
   volumes:
    - ../schema:/schema
   command: ["-path", "/schema", "-database", "postgres://postgres:postgres@pg_test:5432/postgres?sslmode=disable", "up", "3"]
-  links:
-   - pg
