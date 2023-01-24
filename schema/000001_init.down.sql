@@ -1,3 +1,2 @@
-DROP TABLE users;
-DROP TABLE users_keys;
-DROP TABLE sessions;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users_keys;
