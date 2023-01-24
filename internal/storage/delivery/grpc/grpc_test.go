@@ -1,130 +1,146 @@
 package grpc
 
-// import (
-// 	"context"
-// 	"database/sql"
-// 	"errors"
-// 	"net"
-// 	"testing"
-// 	"time"
+import (
+	"context"
+	"errors"
+	"net"
+	"testing"
+	"time"
 
-// 	"github.com/DATA-DOG/go-sqlmock"
-// 	"github.com/alicebob/miniredis"
-// 	"github.com/go-redis/redis"
-// 	"google.golang.org/grpc"
-// 	"google.golang.org/grpc/credentials/insecure"
-// 	"google.golang.org/grpc/test/bufconn"
+	"github.com/alicebob/miniredis"
+	"github.com/go-redis/redis"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
 
-// 	"github.com/diyliv/storage/config"
-// 	"github.com/diyliv/storage/internal/storage/repository"
-// 	"github.com/diyliv/storage/internal/storage/usecase"
-// 	"github.com/diyliv/storage/pkg/errs"
-// 	"github.com/diyliv/storage/pkg/logger"
-// 	storagepb "github.com/diyliv/storage/proto/storage"
-// )
+	"github.com/diyliv/storage/config"
+	"github.com/diyliv/storage/internal/storage/repository"
+	"github.com/diyliv/storage/internal/storage/usecase"
+	"github.com/diyliv/storage/pkg/errs"
+	"github.com/diyliv/storage/pkg/logger"
+	"github.com/diyliv/storage/pkg/storage/postgres"
+	storagepb "github.com/diyliv/storage/proto/storage"
+)
 
-// const bufSize = 1024 * 1024
+const bufSize = 1024 * 1024
 
-// var (
-// 	cfg       = config.ReadConfig("../../../../config")
-// 	log       = logger.InitLogger()
-// 	db, mock  = NewMock()
-// 	sqlRepo   = repository.NewPostgresRepository(log, db)
-// 	redisConn = ConnRedis(&testing.T{})
-// 	redisRepo = repository.NewRedisRepo(log, redisConn, cfg)
-// 	uc        = usecase.NewStorageUC(sqlRepo, redisRepo)
-// 	grpcServ  = NewgRPCService(log, uc)
-// 	lis       *bufconn.Listener
-// )
+var (
+	host     = "pg_test"
+	port     = "5432"
+	user     = "postgres"
+	password = "postgres"
+	db       = "postgres"
+	cfg      = config.ReadConfig("../../../../config")
+	log      = logger.InitLogger()
+	conn, _  = postgres.ConnPostgres(&config.Config{Postgres: config.Postgres{
+		Host:            host,
+		Port:            port,
+		Login:           user,
+		Password:        password,
+		DB:              db,
+		ConnMaxLifeTime: 3,
+		MaxOpenConn:     10,
+		MaxIdleConn:     10,
+	}})
 
-// func init() {
-// 	lis = bufconn.Listen(bufSize)
-// 	s := grpc.NewServer()
-// 	storagepb.RegisterStorageServiceServer(s, grpcServ)
-// 	go func() {
-// 		if err := s.Serve(lis); err != nil {
-// 			panic(err)
-// 		}
-// 	}()
-// }
+	sqlRepo   = repository.NewPostgresRepository(log, conn)
+	redisConn = ConnRedis(&testing.T{})
+	redisRepo = repository.NewRedisRepo(log, redisConn, cfg)
+	uc        = usecase.NewStorageUC(sqlRepo, redisRepo)
+	grpcServ  = NewgRPCService(log, uc)
+	lis       *bufconn.Listener
+)
 
-// func bufDialer(context.Context, string) (net.Conn, error) {
-// 	return lis.Dial()
-// }
+func init() {
+	lis = bufconn.Listen(bufSize)
+	s := grpc.NewServer()
+	storagepb.RegisterStorageServiceServer(s, grpcServ)
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			panic(err)
+		}
+	}()
+}
 
-// func ConnRedis(t *testing.T) *redis.Client {
-// 	mock, err := miniredis.Run()
-// 	if err != nil {
-// 		t.Errorf("Error while starting miniredis: %v\n", err)
-// 	}
+func bufDialer(context.Context, string) (net.Conn, error) {
+	return lis.Dial()
+}
 
-// 	client := redis.NewClient(&redis.Options{
-// 		Addr:         mock.Addr(),
-// 		MinIdleConns: cfg.Redis.MinIdleConn,
-// 		PoolSize:     cfg.Redis.PoolSize,
-// 		PoolTimeout:  time.Duration(cfg.Redis.PoolTimeout),
-// 	})
+func ConnRedis(t *testing.T) *redis.Client {
+	mock, err := miniredis.Run()
+	if err != nil {
+		t.Errorf("Error while starting miniredis: %v\n", err)
+	}
 
-// 	if err := client.Ping().Err(); err != nil {
-// 		t.Errorf("Error while starting redis client: %v\n", err)
-// 	}
+	client := redis.NewClient(&redis.Options{
+		Addr:         mock.Addr(),
+		MinIdleConns: cfg.Redis.MinIdleConn,
+		PoolSize:     cfg.Redis.PoolSize,
+		PoolTimeout:  time.Duration(cfg.Redis.PoolTimeout),
+	})
 
-// 	return client
-// }
+	if err := client.Ping().Err(); err != nil {
+		t.Errorf("Error while starting redis client: %v\n", err)
+	}
 
-// func NewMock() (*sql.DB, sqlmock.Sqlmock) {
-// 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-// 	if err != nil {
-// 		log.Error("Error while creating new sqlmock db: " + err.Error())
-// 	}
+	return client
+}
 
-// 	return db, mock
-// }
+func TestRegister(t *testing.T) {
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Errorf("Error while dialing with bufnet: %v\n", err)
+	}
+	defer conn.Close()
 
-// func TestRegister(t *testing.T) {
-// 	ctx := context.Background()
-// 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
-// 	if err != nil {
-// 		t.Errorf("Error while dialing with bufnet: %v\n", err)
-// 	}
-// 	defer conn.Close()
+	client := storagepb.NewStorageServiceClient(conn)
+	resp, err := client.Register(ctx, &storagepb.RegisterReq{
+		UserName:     "some user",
+		UserEmail:    "some@email.com",
+		UserPassword: "hello world",
+	})
+	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExists) {
+			t.Logf("user already exists")
+		}
+		t.Errorf("Error while calling Register RPC: %v\n", err)
+	}
+	if resp.Status != "created" {
+		t.Errorf("Unexpected result. Got %v want %v\n", resp.Status, "created")
+	}
+}
 
-// 	client := storagepb.NewStorageServiceClient(conn)
-// 	resp, err := client.Register(ctx, &storagepb.RegisterReq{
-// 		UserName:     "some user",
-// 		UserEmail:    "some@email.com",
-// 		UserPassword: "hello world",
-// 	})
-// 	if err != nil {
-// 		if errors.Is(err, errs.ErrAlreadyExists) {
-// 			t.Logf("user already exists")
-// 		}
-// 		t.Errorf("Error while calling Register RPC: %v\n", err)
-// 	}
-// 	if resp.Status != "created" {
-// 		t.Errorf("Unexpected result. Got %v want %v\n", resp.Status, "created")
-// 	}
-// }
+func TestCreateSession(t *testing.T) {
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Errorf("Error while dialing with bufnet: %v\n", err)
+	}
+	defer conn.Close()
+	client := storagepb.NewStorageServiceClient(conn)
 
-// func TestCreateSession(t *testing.T) {
-// 	ctx := context.Background()
-// 	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
-// 	if err != nil {
-// 		t.Errorf("Error while dialing with bufnet: %v\n", err)
-// 	}
-// 	defer conn.Close()
+	resp, err := client.Register(ctx, &storagepb.RegisterReq{
+		UserName:     "some user",
+		UserEmail:    "some_session@email.com",
+		UserPassword: "hello world",
+	})
+	if err != nil {
+		if errors.Is(err, errs.ErrAlreadyExists) {
+			t.Logf("user already exists")
+		}
+		t.Errorf("Error while calling Register RPC: %v\n", err)
+	}
+	if resp.Status != "created" {
+		t.Errorf("Unexpected result. Got %v want %v\n", resp.Status, "created")
+	}
 
-// 	client := storagepb.NewStorageServiceClient(conn)
-// 	_, err = client.CreateSession(ctx, &storagepb.CreateSessionReq{
-// 		Email:    "first@email.com",
-// 		Password: "hashed_pass",
-// 	})
+	_, err = client.CreateSession(ctx, &storagepb.CreateSessionReq{
+		Email:    "some_session@email.com",
+		Password: "hello world",
+	})
 
-// 	if err != nil {
-// 		t.Errorf("Error while calling CreateSession RPC: %v\n", err)
-// 	}
-
-// 	if err := sqlRepo.DeleteUserByEmail(ctx, "first@email.com"); err != nil {
-// 		t.Errorf("Error while deleting: %v\n", err)
-// 	}
-// }
+	if err != nil {
+		t.Errorf("Error while calling CreateSession RPC: %v\n", err)
+	}
+}
