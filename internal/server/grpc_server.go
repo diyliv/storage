@@ -48,7 +48,9 @@ func (s *server) StartgRPC() {
 			MaxConnectionAge:  s.cfg.GrpcServer.MaxConnectionAge * time.Minute,
 			Time:              s.cfg.GrpcServer.Timeout * time.Minute,
 		}),
+		grpc.MaxRecvMsgSize(1024 * 1024 * 1024 * 1024 * 1024 * 20),
 		grpc.ChainUnaryInterceptor(interceptors.Logger, interceptors.CheckToken),
+		grpc.ChainStreamInterceptor(interceptors.StreamLogger, interceptors.StreamCheckToken),
 	}
 	grpcservice := grpcservice.NewgRPCService(s.logger, s.storageUC)
 	server := grpc.NewServer(opts...)
