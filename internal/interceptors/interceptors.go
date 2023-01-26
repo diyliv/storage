@@ -53,23 +53,67 @@ func (i *interceptor) CheckToken(
 		return handler(ctx, req)
 	}
 
+	code, errStr := i.check(ctx)
+	if code != codes.OK {
+		return nil, status.Error(code, errStr)
+	}
+
+	reply, err := handler(ctx, req)
+	return reply, err
+}
+
+func (i *interceptor) StreamLogger(
+	srv interface{},
+	stream grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	handler grpc.StreamHandler) error {
+	start := time.Now()
+	md, ok := metadata.FromIncomingContext(stream.Context())
+	if !ok {
+		return status.Error(codes.InvalidArgument, "unable to recieve medata")
+	}
+
+	err := handler(srv, stream)
+	i.logger.Info(fmt.Sprintf("Method: %s, Time: %v, Metadata: %v, Error: %v\n",
+		info.FullMethod,
+		time.Since(start),
+		md,
+		err))
+	return err
+}
+
+func (i *interceptor) StreamCheckToken(
+	srv interface{},
+	stream grpc.ServerStream,
+	info *grpc.StreamServerInfo,
+	handler grpc.StreamHandler) error {
+
+	code, errStr := i.check(stream.Context())
+	if code != codes.OK {
+		return status.Error(code, errStr)
+	}
+
+	return handler(srv, stream)
+}
+
+func (i *interceptor) check(ctx context.Context) (codes.Code, string) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Error(codes.InvalidArgument, "unable to recieve medata: "+err.Error())
+		return codes.InvalidArgument, "unable to recieve metadata"
 	}
 
 	authHeader, ok := md["authorization"]
 	if !ok {
-		return nil, status.Error(codes.Unauthenticated, "you need specify a token")
+		return codes.Unauthenticated, "you need to specify a token"
 	}
 
 	token := authHeader[0]
 	if err := i.storageUC.CheckToken(ctx, token); err != nil {
 		if errors.Is(err, errs.ErrNotFound) {
-			return nil, status.Error(codes.NotFound, "this token is invalid")
+			return codes.NotFound, "this token in invalid"
 		}
+		return codes.Internal, err.Error()
 	}
 
-	reply, err := handler(ctx, req)
-	return reply, err
+	return codes.OK, ""
 }
