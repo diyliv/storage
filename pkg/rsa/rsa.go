@@ -3,6 +3,9 @@ package rsa
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
 	"hash"
 	"io"
 	"log"
@@ -15,6 +18,27 @@ func GenerateKeys() (*rsa.PrivateKey, error) {
 		return nil, err
 	}
 	return privateKey, nil
+}
+
+func ExportRSAPrivateKey(privKey *rsa.PrivateKey) string {
+	privKeyBytes := x509.MarshalPKCS1PrivateKey(privKey)
+	privKeyPem := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privKeyBytes,
+	})
+	return string(privKeyPem)
+}
+
+func ParseRSAPrivateKey(privPEM string) (*rsa.PrivateKey, error) {
+	block, _ := pem.Decode([]byte(privPEM))
+	if block == nil {
+		return nil, errors.New("failed to parse PEM block containing the key")
+	}
+	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return priv, nil
 }
 
 func EncryptOAEP(hash hash.Hash, random io.Reader, pubKey *rsa.PublicKey, msg []byte) ([]byte, error) {
